@@ -1,0 +1,16 @@
+node_modules/
+
+dist/
+build/
+*.log
+npm-debug.log*
+.DS_Store
+.vscode/
+
+
+*.js
+*.d.ts
+.env
+.vite/
+Thumbs.db
+Desktop.ini
