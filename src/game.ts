@@ -12,6 +12,7 @@ private renderer: THREE.WebGLRenderer;
 private player: Player;
 private obstacles: Obstacles;
 private clock: THREE.Clock;
+private starField: THREE.Points;
 
 constructor(private canvas: HTMLCanvasElement) {
 	this.scene = new THREE.Scene();
@@ -31,6 +32,22 @@ constructor(private canvas: HTMLCanvasElement) {
 
 	this.camera.position.set(0, 15, 3);
 	this.camera.lookAt(0, 0, 0);
+
+	// ------------ copy from internet : star field bg -------------
+	let stars = new Array(0);
+	for (let i = 0; i < 10000; i++) {
+		let x = Math.random() * 2000 - 1000;
+		let y = Math.random() * 2000 - 1000;
+		let z = Math.random() * 2000 - 1000;
+		stars.push(x, y, z);
+	}
+	
+	let starsGeometry = new THREE.BufferGeometry();
+	starsGeometry.setAttribute("position", new THREE.Float32BufferAttribute(stars, 3));
+	let starsMaterial = new THREE.PointsMaterial({ color: 0x888888 });
+	this.starField = new THREE.Points(starsGeometry, starsMaterial);
+	this.scene.add(this.starField);
+	// -----------------------------------------------------------
 }
 
 start() {
@@ -44,6 +61,10 @@ private animate = () => {
 
 	this.player.update(delta);
 	this.obstacles.update(delta, this.player.getProjectiles());
+
+	this.starField.rotation.x += -0.0002;
+    this.starField.rotation.y += 0.0001;
+    this.starField.rotation.z += 0.0001;
 
 	// obstacle collide player
 	if (this.player.checkCollision(this.obstacles.getObstacles())) {
