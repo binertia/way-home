@@ -1,3 +1,6 @@
+// need lvl design also dynamic delta for up lvl game play
+// phase should be up every 30 sec
+
 import * as THREE from 'three';
 import { Player } from './player';
 import { Obstacles } from './obstacles';
@@ -37,12 +40,12 @@ start() {
 private animationId: number = 0;
 
 private animate = () => {
-	const delta = this.clock.getDelta() + 0.1;
+	const delta = this.clock.getDelta() + 0.02;
 
 	this.player.update(delta);
-	this.obstacles.update(delta);
+	this.obstacles.update(delta, this.player.getProjectiles());
 
-	// obstacle touch player
+	// obstacle collide player
 	if (this.player.checkCollision(this.obstacles.getObstacles())) {
 		console.log("game over baby");
 		cancelAnimationFrame(this.animationId);

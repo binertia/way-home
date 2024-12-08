@@ -64,11 +64,12 @@ private handleKeyUp = (event: KeyboardEvent): void => {
 	}
 };
 
+// :TODO: wait for refactor keys.Space handler
 private processInput(): void {
 	this.velocity.x = 0;
 	this.velocity.z = 0;
 
-	if (this.keys['Space'] && !this.isShooting) {
+	if (this.keys['Space'] && !this.isShooting) { // :TODO: should refactor
 		this.isShooting = true;
 		this.shoot(); // first shot
 		this.shootingInterval = setInterval( () => {
@@ -76,13 +77,18 @@ private processInput(): void {
 				this.shoot();
 			else
 				this.stopShoot();
-		}, 300
+		}, 200
 		)
 	}
-	if (this.keys['KeyA']) this.velocity.x = -0.06;
-	else if (this.keys['KeyD']) this.velocity.x = 0.06;
-	if (this.keys['KeyW']) this.velocity.z = -0.06;
-	else if (this.keys['KeyS']) this.velocity.z = 0.061; 
+	// :FIX: player velocity value
+	if (this.keys['KeyA'] && this.position.x > -4)
+		this.velocity.x = -0.1;
+	else if (this.keys['KeyD'] && this.position.x < 4)
+		this.velocity.x = 0.1;
+	if (this.keys['KeyW'] && this.position.z > -14)
+		this.velocity.z = -0.1;
+	else if (this.keys['KeyS'] && this.position.z < 14)
+		this.velocity.z = 0.101; 
 }
 
 // === make player can shoot ====
@@ -92,6 +98,7 @@ private shoot(): void {
 	this.scene.add(projectile);
 }
 
+// setup projectile shot
 private createProjectile(): THREE.Mesh {
 	const projectile = new THREE.Mesh(
 		new THREE.SphereGeometry(0.3, 16, 16), // :TODO: make type createPlayerMesh more useful? should i extend?
@@ -105,20 +112,20 @@ private createProjectile(): THREE.Mesh {
 	return projectile;
 }
 
+// add projectile const speed & remove projectile when out of range
 private updateProjectiles(delta: number): void {
 	for (let i = this.projectiles.length - 1; i >= 0; i--) {
 		const projectile = this.projectiles[i];
-		projectile.position.z -= this.projectileSpeed * delta;
+		projectile.position.z -= this.projectileSpeed * delta + 0.3;
 
-		// remove projectile when out of - 50
-		// :TODO: also need remove it when it hit enemy
-		if (projectile.position.z < -50) {
+		if (projectile.position.z < -28) {
 			this.scene.remove(projectile);
 			this.projectiles.splice(i, 1);
 		}
 	}
 }
 
+// break Interval :TODO: make delta-value version and test
 private stopShoot(): void {
 	this.isShooting = false;
 	clearInterval(this.shootingInterval)
@@ -143,13 +150,20 @@ public update(delta: number): void {
 	this.updatePosition();
 	this.updateProjectiles(delta);
 }
-public checkCollision(obstacles: THREE.Mesh[]): boolean {
+
+// obstacle and player check collide
+public checkCollision(obstacles: {mesh:THREE.Mesh, hitCount: number}[]): boolean {
 	const playerBox = new THREE.Box3().setFromObject(this.mesh);
 	for (const obstacle of obstacles) {
-		const obstacleBox = new THREE.Box3().setFromObject(obstacle);
+		const obstacleBox = new THREE.Box3().setFromObject(obstacle.mesh);
 		if (playerBox.intersectsBox(obstacleBox)) return true;
 	}
 	return false;
+}
+
+// for obstacle collide check 
+getProjectiles(): THREE.Mesh[] {
+	return this.projectiles;
 }
 // ================================
 
