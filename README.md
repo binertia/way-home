@@ -1,11 +1,13 @@
 # way-home: simple shooting game
 
-**way-home** is 2.5D shooting game similar to *Space Invaders*. You control a space jet, destroy enemy (right now just cute red obstacle) to survive. The goal is to make it home safely while destroy all enemy.
+WIP :: 
+**way-home** is 2.5D shooting game similar to *Space Invaders*. You control a space jet, destroy cute red obstacle to survive. Don't let them stack too much. The goal is to make it home safely while destroy all enemy.
 
 ## 🕹️ control
 - **`W` / `S`**: move space jet forward/backward.
 - **`A` / `D`**: move space jet left/right.
 - **`Space`**: shoot projectile.
+- **`E`**: use Bomb.
 
 ## 🚀 install & run
 1. clone project.
