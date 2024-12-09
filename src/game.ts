@@ -76,7 +76,7 @@ public async start(): Promise<void> {
 				return;
 			}
 
-			const delta = this.clock.getDelta() + 0.02;
+			const delta = (this.clock.getDelta() * 3) + 0;
 			this.starField.rotation.x += -0.0002;
 			this.starField.rotation.y += 0.0001;
 			this.starField.rotation.z += 0.0001;
