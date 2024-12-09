@@ -1,7 +1,5 @@
 // :TODO: : change setInterval to use delta-based timer
  
-// other :TODO: need max range of x player can travel
-
 import * as THREE from 'three';
 import {OBJLoader} from 'three/examples/jsm/loaders/OBJLoader'
 
@@ -16,6 +14,7 @@ private keys: Record<string, boolean> = {
 	KeyA: false,
 	KeyS: false,
 	KeyD: false,
+	KeyE: false,
 	Space: false // Track space key for shooting
 };
 
@@ -84,22 +83,24 @@ private processInput(): void {
 				this.shoot();
 			else
 				this.stopShoot();
-		}, 200
+		}, 160
 		)
 	}
 	// :FIX: player velocity value
 	if (this.keys['KeyA'] && this.position.x > -4) {
-		this.velocity.x = -0.1;
+		this.velocity.x = -0.16;
 		this.rotateJet = 0.03;
 	}
 	else if (this.keys['KeyD'] && this.position.x < 4) {
-		this.velocity.x = 0.1;
+		this.velocity.x = 0.16;
 		this.rotateJet = -0.03;
 	}
 	if (this.keys['KeyW'] && this.position.z > -14)
-		this.velocity.z = -0.1;
+		this.velocity.z = -0.16;
 	else if (this.keys['KeyS'] && this.position.z < 14)
-		this.velocity.z = 0.101; 
+		this.velocity.z = 0.161; 
+	if (this.keys['KeyE'])
+		this.bomb();
 }
 
 // === make player can shoot ====
@@ -107,6 +108,14 @@ private shoot(): void {
 	const projectile = this.createProjectile();
 	this.projectiles.push(projectile);
 	this.scene.add(projectile);
+}
+
+private bomb(): void {
+    const numProjectiles = 40; // Number of projectiles to fire
+    const radius = 1; // Distance from the player to fire projectiles
+    for (let i = 0; i < numProjectiles; i++) {
+        this.createBombProjectile(radius);
+    }
 }
 
 // setup projectile shot
@@ -123,12 +132,60 @@ private createProjectile(): THREE.Mesh {
 	return projectile;
 }
 
+// setup bomb
+private createBombProjectile(radius: number): void {
+    const direction = new THREE.Vector3();
+    direction.x = Math.random() * 40 - 20;
+    direction.y = 0;
+    direction.z = Math.random() * 40 - 20;
+    
+const projectile = new THREE.Mesh(
+        new THREE.SphereGeometry(0.3, 16, 16),
+        new THREE.MeshStandardMaterial({ color: 0xfff8bbd0 })
+    );
+    
+    projectile.position.set(
+        this.mesh.position.x + -0.9,
+        this.mesh.position.y,
+        this.mesh.position.z
+    );
+    
+    projectile.userData = {
+        velocity: direction.multiplyScalar(0.3) // Scale the velocity
+    };
+    
+    this.projectiles.push(projectile);
+    this.scene.add(projectile);
+}
+
+private updateBombProjectile(delta: number): void {
+    for (let i = this.projectiles.length - 1; i >= 0; i--) {
+        const projectile = this.projectiles[i];
+        
+        // check velocity before updating position
+        if (projectile.userData && projectile.userData.velocity) {
+            projectile.position.add(projectile.userData.velocity.clone().multiplyScalar(delta));
+        }
+
+        // remove projectile out of range
+        if (projectile.position.z < -35 || projectile.position.z > 35 ||
+            projectile.position.y < -35 || projectile.position.y > 35 ||
+            projectile.position.x < -35 || projectile.position.x > 35
+        ) {
+            this.scene.remove(projectile);
+            this.projectiles.splice(i, 1);
+        }
+    }
+}
+
+
+
 // add projectile const speed & remove projectile when out of range
 private updateProjectiles(delta: number): void {
 	for (let i = this.projectiles.length - 1; i >= 0; i--) {
 		const projectile = this.projectiles[i];
 		projectile.position.z -= this.projectileSpeed * delta + 0.3;
-		projectile.position.x += Math.random() * 0.2 - 0.1
+		projectile.position.x += Math.random() * 0.4 - 0.2
 
 		if (projectile.position.z < -28) {
 			this.scene.remove(projectile);
@@ -162,6 +219,7 @@ public update(delta: number): void {
 	this.processInput();
 	this.updatePosition();
 	this.updateProjectiles(delta);
+	this.updateBombProjectile(delta);
 }
 
 // obstacle and player check collide
