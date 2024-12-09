@@ -1,5 +1,5 @@
-// for improve : change setInterval to use delta-based timer
-// 
+// :TODO: : change setInterval to use delta-based timer
+ 
 // other :TODO: need max range of x player can travel
 
 import * as THREE from 'three';

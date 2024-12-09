@@ -1,0 +1,46 @@
+body {
+	height: 100%;
+	overflow-x: hidden;
+	overflow-y: hidden;
+	padding:0;
+	margin:0;
+	box-sizing:border-box
+}
+
+.core-button {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	padding: 15px 30px;
+	font-size: 18px;
+	background-color: rgba(35, 57, 72, 0.794);
+	color: white;
+	border: none;
+	border-radius: 10px;
+	cursor: pointer;
+	z-index: 1;
+	transition: background-color 0.3s ease-in-out;
+}
+
+.core-button:hover {
+	background-color: rgba(138, 36, 36, 0.8);
+}
+
+#gameOverMsg {
+	background-color: black;
+	position: absolute;
+	top: 35%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	font-family: "Courier New", Courier, monospace;
+	text-align: left;
+	font-size: 4px;
+	color: white;
+	max-width: 400px;
+}
+
+#retryContainer {
+	width: 100%;
+	visibility: hidden;
+}

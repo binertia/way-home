@@ -7,6 +7,7 @@
 
 // should i make projectile shoot randomly like gun spread shot? (4% .. -4%)
 
+// idea: make it stacking ** like tertise
 
 import * as THREE from 'three';
 
