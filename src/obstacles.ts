@@ -14,10 +14,52 @@ private obstacleRemoveCount: number = 0;
 private uiUpdater: any;
 private gameOverStack: boolean = false;
 
+private explosionSoundBuffer: AudioBuffer | null = null;
+private audioPool: THREE.PositionalAudio[] = [];
+private maxAudioInstances = 10;
 
 
-constructor(private scene: THREE.Scene,uiUpdater: any) {
+
+constructor(private scene: THREE.Scene,uiUpdater: any, private listener: THREE.AudioListener) {
 	this.uiUpdater = uiUpdater;
+
+	const audioLoader = new THREE.AudioLoader();
+	audioLoader.load('/sound/explosion.mp3', (buffer) => {
+		this.explosionSoundBuffer = buffer;
+	});
+}
+private createAudio(): THREE.PositionalAudio {
+    if (this.audioPool.length > 0) {
+        return this.audioPool.pop()!;
+    }
+
+    const positionalAudio = new THREE.PositionalAudio(this.listener);
+    return positionalAudio;
+}
+
+private recycleAudio(audio: THREE.PositionalAudio): void {
+    audio.stop();
+    this.audioPool.push(audio);
+    if (this.audioPool.length > this.maxAudioInstances) {
+        this.audioPool.shift();
+    }
+}
+
+private playExplosionSound(obstacle: THREE.Mesh): void {
+    const positionalAudio = this.createAudio();
+    obstacle.add(positionalAudio);
+
+    if (this.explosionSoundBuffer) {
+        positionalAudio.setBuffer(this.explosionSoundBuffer);
+        positionalAudio.setRefDistance(10);
+        positionalAudio.setVolume(0.4);
+        positionalAudio.play();
+
+        positionalAudio.onEnded = () => {
+            obstacle.remove(positionalAudio);
+            this.recycleAudio(positionalAudio);
+        };
+    }
 }
 
 spawnObstacle() {
@@ -65,6 +107,7 @@ for (let i = this.obstacles.length - 1; i >= 0; i--) {
 				this.scene.remove(mesh);
 				if (this.obstacleRemoveCount < 40)
 					this.obstacleRemoveCount++;
+				this.playExplosionSound(this.obstacles[i].mesh);
 				console.log(this.obstacleRemoveCount);
 				obstaclesToRemove.push({ index: i, mesh });
 				break;

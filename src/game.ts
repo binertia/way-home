@@ -40,7 +40,7 @@ constructor(private canvas: HTMLCanvasElement) {
 
 	//setup player & obs
 	this.player = new Player(this.scene, this.listener);
-	this.obstacles = new Obstacles(this.scene, this.uiUpdate);
+	this.obstacles = new Obstacles(this.scene, this.uiUpdate, this.listener);
 
 	this.camera.position.set(0, 15, 3);
 	this.camera.lookAt(0, 0, 0);

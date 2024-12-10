@@ -77,7 +77,7 @@ private recycleAudio(audio: THREE.PositionalAudio): void {
     audio.stop();
     this.audioPool.push(audio);
     if (this.audioPool.length > this.maxAudioInstances) {
-        this.audioPool.shift(); // Remove excess instances
+        this.audioPool.shift();
     }
 }
 
@@ -91,7 +91,6 @@ private playLaserSound(projectile: THREE.Mesh): void {
         positionalAudio.setVolume(0.1);
         positionalAudio.play();
 
-        // Recycle audio when done
         positionalAudio.onEnded = () => {
             projectile.remove(positionalAudio);
             this.recycleAudio(positionalAudio);
@@ -129,11 +128,11 @@ private processInput(): void {
 		)
 	}
 	// :FIX: player velocity value
-	if (this.keys['KeyA'] && this.position.x > -4) {
+	if (this.keys['KeyA'] && this.position.x > -4.8) {
 		this.velocity.x = -0.16;
 		this.rotateJet = 0.03;
 	}
-	else if (this.keys['KeyD'] && this.position.x < 4) {
+	else if (this.keys['KeyD'] && this.position.x < 4.8) {
 		this.velocity.x = 0.16;
 		this.rotateJet = -0.03;
 	}
