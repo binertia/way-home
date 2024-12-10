@@ -44,3 +44,80 @@ body {
 	width: 100%;
 	visibility: hidden;
 }
+
+.progress-container {
+	position: absolute;
+	top: 90%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+	z-index: 10;
+	overflow: visible;
+}
+
+.progress-circle {
+    transform: rotate(-90deg);
+	width: 80px;
+	height: 80px;
+	margin : 40px;
+	padding: 50px;
+	transform-origin: center;
+}
+
+.progress-bg {
+    fill: none;
+    stroke: #c81313;
+    stroke-width: 10;
+}
+
+.progress-bar {
+    fill: none;
+    stroke: #0f7ef2;
+    stroke-width: 10;
+    stroke-linecap: round;
+    stroke-dasharray: 440;
+    stroke-dashoffset: 440;
+    transition: stroke-dashoffset 1s ease-out;
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+    100% {
+        transform: translateY(0); 
+    }
+}
+
+.progress-circle.floating {
+    animation: float 2s infinite ease-in-out;
+}
+
+.progress-text {
+	display: hidden;
+}
+
+
+@keyframes growCircle {
+    0% {
+        filter: brightness(0.5);
+    }
+    50% {
+        filter: brightness(2) saturate(4);
+    }
+    100% {
+        filter: brightness(0.5);
+    }
+}
+
+.fire-effect {
+	margin: 10px;
+	overflow: visible;
+    animation: fireAnimation 1s infinite alternate, growCircle 1s ease-in-out infinite;
+    transition: all 0.2s ease;
+}

@@ -10,8 +10,15 @@ import * as THREE from 'three';
 export class Obstacles {
 private obstacles: {mesh: THREE.Mesh, hitCount: number, froze: boolean, base_froze: boolean}[] = [];
 private spawnTimer: number = 0;
+private obstacleRemoveCount: number = 0;
+private uiUpdater: any;
+private gameOverStack: boolean = false;
 
-constructor(private scene: THREE.Scene) {}
+
+
+constructor(private scene: THREE.Scene,uiUpdater: any) {
+	this.uiUpdater = uiUpdater;
+}
 
 spawnObstacle() {
 	const obstacle = new THREE.Mesh(
@@ -54,8 +61,11 @@ for (let i = this.obstacles.length - 1; i >= 0; i--) {
 			this.scene.remove(projectile);
 			projectiles.splice(j, 1);
 
-			if (this.obstacles[i].hitCount >= 3) {
+			if (this.obstacles[i].hitCount >= 2) {
 				this.scene.remove(mesh);
+				if (this.obstacleRemoveCount < 40)
+					this.obstacleRemoveCount++;
+				console.log(this.obstacleRemoveCount);
 				obstaclesToRemove.push({ index: i, mesh });
 				break;
 			}
@@ -82,6 +92,8 @@ if (!this.obstacles[i].froze) {
 
 	//check for unfroze
 	if (this.obstacles[i].froze && !this.obstacles[i].base_froze) {
+		if (this.obstacles[i].mesh.position.z < -15)
+			this.gameOverStack = true;
 		let breakFree = true;
 		for (let k = 0; k < this.obstacles.length; k++) {
 			if (i !== k && this.obstacles[i].mesh.position.z < this.obstacles[k].mesh.position.z) {
@@ -100,6 +112,9 @@ if (!this.obstacles[i].froze) {
 		this.obstacles.splice(index, 1);
 	}
 }
+
+// getter setter ORC
+
 private isCollideFrozeObstacle(obstacleA: THREE.Mesh, obstacleB: THREE.Mesh): boolean {
 	const boxA = new THREE.Box3().setFromObject(obstacleA);
 	const boxB = new THREE.Box3().setFromObject(obstacleB);
@@ -120,7 +135,43 @@ private isCollide(sphere: THREE.Mesh, box: THREE.Mesh): boolean {
 }
 
 // getter
-getObstacles(): { mesh: THREE.Mesh; hitCount: number }[] {
+public getObstacleRemoveCount() {
+	return this.obstacleRemoveCount as number;
+}
+public setObstacleRemoveCount (count: number): void {
+	this.obstacleRemoveCount = count;
+}
+
+public getObstacles(): { mesh: THREE.Mesh; hitCount: number }[] {
 	return this.obstacles;
+}
+
+public getGameOverStack(): boolean {
+	return this.gameOverStack;
+}
+
+}
+
+export class UIUpdater {
+
+private progressBar: SVGCircleElement;
+
+constructor() {
+	const progressCircle: SVGSVGElement = document.querySelector('.progress-circle') as SVGSVGElement;
+	this.progressBar = progressCircle.querySelector('.progress-bar') as SVGCircleElement;
+}
+
+updateProgress(count: number, bombReady: boolean) {
+	const progress = (count / 40) * 100;
+
+	const offset = 440 - (440 * (count / 40));
+
+if (bombReady) {
+		this.progressBar?.classList.add('fire-effect');
+		this.progressBar.style.strokeDashoffset = `${0}px`;
+	} else {
+		this.progressBar?.classList.remove('fire-effect');
+		this.progressBar.style.strokeDashoffset = `${offset}px`;
+	}
 }
 }

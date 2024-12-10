@@ -4,6 +4,7 @@
 import * as THREE from 'three';
 import { Player } from './player';
 import { Obstacles } from './obstacles';
+import { UIUpdater } from './obstacles';
 export class Game {
 private scene: THREE.Scene;
 private camera: THREE.PerspectiveCamera;
@@ -15,6 +16,8 @@ private starField: THREE.Points;
 private isStart: boolean = false;
 private isStop: boolean = false; //async purpose
 private animationId: number = 0;
+private uiUpdate: any;
+public listener: THREE.AudioListener = new THREE.AudioListener();
 
 constructor(private canvas: HTMLCanvasElement) {
 	//setup
@@ -25,16 +28,26 @@ constructor(private canvas: HTMLCanvasElement) {
 
 	this.clock = new THREE.Clock();
 
+	//ui
+	this.uiUpdate = new UIUpdater;
+
+	//audio listener
+	this.camera.add(this.listener);
+
 	//add light
 	const light = new THREE.HemisphereLight(0xffffff, 0x000000, 1);
 	this.scene.add(light);
 
 	//setup player & obs
-	this.player = new Player(this.scene);
-	this.obstacles = new Obstacles(this.scene);
+	this.player = new Player(this.scene, this.listener);
+	this.obstacles = new Obstacles(this.scene, this.uiUpdate);
 
 	this.camera.position.set(0, 15, 3);
 	this.camera.lookAt(0, 0, 0);
+
+	const progressContainer = document.getElementsByClassName("progress-container")[0] as HTMLElement
+	if (progressContainer)
+		progressContainer.style.visibility = "hidden"
 
 
 	// ======== star field background =========
@@ -58,6 +71,9 @@ constructor(private canvas: HTMLCanvasElement) {
 	const startButton = document.getElementById('startButton');
 	if (startButton) {
 		startButton.addEventListener('click', () => {
+			const progressContainer = document.getElementsByClassName("progress-container")[0] as HTMLElement
+			if (progressContainer)
+				progressContainer.style.visibility = "visible"
 			this.isStart = true;
 			startButton.style.visibility = "hidden";
 			console.log('game started');
@@ -68,6 +84,7 @@ constructor(private canvas: HTMLCanvasElement) {
 }
 
 public async start(): Promise<void> {
+	let maxStart = 20;
 	this.isStop = false;
 	await new Promise<void>((resolve) => {
 		const loop = async () => {
@@ -75,18 +92,22 @@ public async start(): Promise<void> {
 				resolve();
 				return;
 			}
-
 			const delta = (this.clock.getDelta() * 3) + 0.03;
 			this.starField.rotation.x += -0.0002;
 			this.starField.rotation.y += 0.0001;
 			this.starField.rotation.z += 0.0001;
 
 			if (this.isStart) {
+				this.uiUpdate.updateProgress(this.obstacles.getObstacleRemoveCount(), this.player.getBombReady());
 				this.player.update(delta);
 				this.obstacles.update(delta, this.player.getProjectiles());
-
-				if (this.player.checkCollision(this.obstacles.getObstacles())) {
-					console.log("Game over!");
+				if (this.obstacles.getObstacleRemoveCount() >= 40) {
+					this.player.setBombReady(true);
+				}
+				if (this.player.getBombReady())
+					this.obstacles.setObstacleRemoveCount(0);
+				if (this.player.checkCollision(this.obstacles.getObstacles()) || this.obstacles.getGameOverStack()) {
+					console.log("game over");
 
 					await this.waitForRetry();
 

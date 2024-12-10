@@ -27,15 +27,20 @@ private isShooting: boolean = false;
 private shootingInterval: number = 0;
 private loader: OBJLoader;
 private rotateJet: number = 0;
+private bombReady: boolean = false;
+
+private laserSoundBuffer: AudioBuffer | null = null;
+private audioPool: THREE.PositionalAudio[] = [];
+private maxAudioInstances = 10;
 
 constructor(
 	private scene: THREE.Scene,
-	initialPosition: Vector3D = { x: 0, y: 0, z: 9 },  // start pos.z of player is 9 :TODO: fix hard code part
-	initialVelocity: Vector3D = { x: 0, y: 0, z: 0 }
+	private listener: THREE.AudioListener,
+	initialPosition: Vector3D = { x: 0.8, y: 0, z: 9 },  // start pos.z of player is 9 :TODO: fix hard code part
+	initialVelocity: Vector3D = { x: 0, y: 0, z: 0 },
 ) {
 	this.position = { ...initialPosition };
 	this.velocity = { ...initialVelocity };
-
 
 	window.addEventListener('keydown', this.handleKeyDown);
 	window.addEventListener('keyup', this.handleKeyUp);
@@ -53,6 +58,45 @@ constructor(
 			this.scene.add(this.mesh)
 		}
 	)
+	const audioLoader = new THREE.AudioLoader();
+		audioLoader.load('/sound/laser.mp3', (buffer) => {
+			this.laserSoundBuffer = buffer;
+		});
+}
+
+private createAudio(): THREE.PositionalAudio {
+    if (this.audioPool.length > 0) {
+        return this.audioPool.pop()!;
+    }
+
+    const positionalAudio = new THREE.PositionalAudio(this.listener);
+    return positionalAudio;
+}
+
+private recycleAudio(audio: THREE.PositionalAudio): void {
+    audio.stop();
+    this.audioPool.push(audio);
+    if (this.audioPool.length > this.maxAudioInstances) {
+        this.audioPool.shift(); // Remove excess instances
+    }
+}
+
+private playLaserSound(projectile: THREE.Mesh): void {
+    const positionalAudio = this.createAudio();
+    projectile.add(positionalAudio);
+
+    if (this.laserSoundBuffer) {
+        positionalAudio.setBuffer(this.laserSoundBuffer);
+        positionalAudio.setRefDistance(20);
+        positionalAudio.setVolume(0.1);
+        positionalAudio.play();
+
+        // Recycle audio when done
+        positionalAudio.onEnded = () => {
+            projectile.remove(positionalAudio);
+            this.recycleAudio(positionalAudio);
+        };
+    }
 }
 
 // == handle keys input ====
@@ -60,9 +104,7 @@ constructor(
 private handleKeyDown = (event: KeyboardEvent): void => {
 	if (event.code in this.keys) {
 		this.keys[event.code] = true;
-	}
-};
-
+	} };
 private handleKeyUp = (event: KeyboardEvent): void => {
 	if (event.code in this.keys) {
 		this.keys[event.code] = false;
@@ -83,7 +125,7 @@ private processInput(): void {
 				this.shoot();
 			else
 				this.stopShoot();
-		}, 160
+		}, 200 
 		)
 	}
 	// :FIX: player velocity value
@@ -99,7 +141,7 @@ private processInput(): void {
 		this.velocity.z = -0.16;
 	else if (this.keys['KeyS'] && this.position.z < 14)
 		this.velocity.z = 0.161; 
-	if (this.keys['KeyE'])
+	if (this.keys['KeyE'] && this.bombReady)
 		this.bomb();
 }
 
@@ -108,6 +150,8 @@ private shoot(): void {
 	const projectile = this.createProjectile();
 	this.projectiles.push(projectile);
 	this.scene.add(projectile);
+
+	this.playLaserSound(projectile);
 }
 
 private bomb(): void {
@@ -116,6 +160,7 @@ private bomb(): void {
     for (let i = 0; i < numProjectiles; i++) {
         this.createBombProjectile(radius);
     }
+	this.bombReady = false;
 }
 
 // setup projectile shot
@@ -243,4 +288,13 @@ public dispose(): void {
 	window.removeEventListener('keydown', this.handleKeyDown);
 	window.removeEventListener('keyup', this.handleKeyUp);
 }
+
+public setBombReady(ready: boolean): void {
+	this.bombReady = ready;
+}
+public getBombReady(): boolean {
+	return this.bombReady;
+}
+
+
 }
