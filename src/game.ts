@@ -4,7 +4,7 @@
 import * as THREE from 'three';
 import { Player } from './player';
 import { Obstacles } from './obstacles';
-import { UIUpdater } from './obstacles';
+import { UIUpdater } from './UIUpdater';
 export class Game {
 private scene: THREE.Scene;
 private camera: THREE.PerspectiveCamera;
@@ -92,7 +92,7 @@ public async start(): Promise<void> {
 				resolve();
 				return;
 			}
-			const delta = (this.clock.getDelta() * 3) + 0.03;
+			const delta = (this.clock.getDelta() * 2) + 0.03;
 			this.starField.rotation.x += -0.0002;
 			this.starField.rotation.y += 0.0001;
 			this.starField.rotation.z += 0.0001;
@@ -100,7 +100,7 @@ public async start(): Promise<void> {
 			if (this.isStart) {
 				this.uiUpdate.updateProgress(this.obstacles.getObstacleRemoveCount(), this.player.getBombReady());
 				this.player.update(delta);
-				this.obstacles.update(delta, this.player.getProjectiles());
+				this.obstacles.update(delta, this.player.getProjectiles(), this.listener);
 				if (this.obstacles.getObstacleRemoveCount() >= 40) {
 					this.player.setBombReady(true);
 				}

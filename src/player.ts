@@ -15,7 +15,7 @@ private keys: Record<string, boolean> = {
 	KeyS: false,
 	KeyD: false,
 	KeyE: false,
-	Space: false // Track space key for shooting
+	Space: false
 };
 
 private position: Vector3D;
@@ -154,8 +154,8 @@ private shoot(): void {
 }
 
 private bomb(): void {
-    const numProjectiles = 40; // Number of projectiles to fire
-    const radius = 1; // Distance from the player to fire projectiles
+    const numProjectiles = 40;
+    const radius = 1;
     for (let i = 0; i < numProjectiles; i++) {
         this.createBombProjectile(radius);
     }
@@ -268,7 +268,10 @@ public update(delta: number): void {
 
 // obstacle and player check collide
 public checkCollision(obstacles: {mesh:THREE.Mesh, hitCount: number}[]): boolean {
-	const playerBox = new THREE.Box3().setFromObject(this.mesh);
+	const playerBox = new THREE.Box3(
+        new THREE.Vector3(this.mesh.position.x - 1.5, this.mesh.position.y - 0.2, this.mesh.position.z - 0.2), // min
+        new THREE.Vector3(this.mesh.position.x - 0.1, this.mesh.position.y + 0.2, this.mesh.position.z + 2),  // max
+    );
 	for (const obstacle of obstacles) {
 		const obstacleBox = new THREE.Box3().setFromObject(obstacle.mesh);
 		if (playerBox.intersectsBox(obstacleBox)) return true;
